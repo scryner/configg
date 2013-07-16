@@ -1,17 +1,17 @@
 package configg
 
 import (
-	"os"
-	"reflect"
-	"fmt"
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"os"
+	"reflect"
 	"strconv"
 )
 
 type Config struct {
 	unparsed string
-	parsed map[string]interface{}
+	parsed   map[string]interface{}
 }
 
 func newConfig() *Config {
@@ -114,6 +114,18 @@ func (c *Config) getValue(k string, v interface{}) error {
 			return fmt.Errorf("type not matched: %s would be float", k)
 		}
 
+	case bool:
+		if s, ok := ret.(string); ok {
+			b, err := strconv.ParseBool(s)
+			if err != nil {
+				return fmt.Errorf("type not matched: %s would be bool", k)
+			}
+
+			val2.Set(reflect.ValueOf(b))
+		} else {
+			return fmt.Errorf("type not matched: %s would be bool", k)
+		}
+
 	case string:
 		if _, ok := ret.(string); ok {
 			val2.Set(reflect.ValueOf(ret))
@@ -142,7 +154,12 @@ func (c *Config) GetInt(key string) (val int, err error) {
 	return
 }
 
-func (c *Config) GetFloat(key string) (val float64, err error) {
+func (c *Config) GetFloat64(key string) (val float64, err error) {
+	err = c.getValue(key, &val)
+	return
+}
+
+func (c *Config) GetBool(key string) (val bool, err error) {
 	err = c.getValue(key, &val)
 	return
 }
